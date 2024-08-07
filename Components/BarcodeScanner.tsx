@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BarcodeScanner() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false); 
-
+  const [scanned, setScanned] = useState(false);  
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const cameraRef = useRef<CameraView>(null);
+  
   if (!permission) {
-    // Camera permissions are still loading.
     return <View />;
   }
-
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
         <Text style={styles.message}>We need your permission to show the camera</Text>
@@ -21,21 +20,37 @@ export default function BarcodeScanner() {
     );
   }
 
-  const handleBarCodeScanned = (scannedData: BarcodeScanningResult) => {
+  const handleBarCodeScanned = async (scannedData: BarcodeScanningResult) => {
     setScanned(true); 
     console.log(`Scanned barcode: ${scannedData.data}`);
+    if (cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync();
+        setCapturedImage(photo.uri);
+        console.log('Photo taken:', photo.uri);
+      } catch (error) {
+        console.error('Failed to take picture:', error);
+      }
+    }
   }
 
   return (
     <View style={styles.container}>
-      <CameraView 
+      <CameraView
+        ref={cameraRef}
         style={styles.camera} 
-        facing={'back'} //Using the back camera of the device
-        barcodeScannerSettings=
-          {{
-            barcodeTypes: ["qr"] 
-          }} 
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} />
+        facing={'back'}
+        barcodeScannerSettings={{
+          barcodeTypes: ["qr"] 
+        }} 
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} 
+      />
+      {capturedImage && (
+        <Text>Captured Image URI: {capturedImage}</Text>
+      )}
+      {scanned && (
+        <Button title="Scan Again" onPress={() => setScanned(false)} />
+      )}
     </View>
   );
 }
