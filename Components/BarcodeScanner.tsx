@@ -21,19 +21,18 @@ export default function BarcodeScanner() {
     );
   }
 
+  const handleBarCodeScanned = (data: string) => {
+    alert(`Scanned barcode: ${data}`);
+  }
+
   function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
   }
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
-        </View>
-      </CameraView>
+      <CameraView style={styles.camera} facing={facing} barcodeScannerSettings={{
+    barcodeTypes: ["qr"] }} onBarcodeScanned={handleBarCodeScanned} />
     </View>
   );
 }
