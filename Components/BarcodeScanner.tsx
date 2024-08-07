@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView , CameraType, useCameraPermissions } from 'expo-camera';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BarcodeScanner() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);  
+  const [imageTaken, setImageStatus] = useState(true);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   
@@ -20,18 +21,25 @@ export default function BarcodeScanner() {
     );
   }
 
-  const handleBarCodeScanned = async (scannedData: BarcodeScanningResult) => {
+  const handleBarCodeScanned = (scannedData: BarcodeScanningResult) => {
     setScanned(true); 
     console.log(`Scanned barcode: ${scannedData.data}`);
-    if (cameraRef.current) {
+    setImageStatus(false);
+  }
+
+  const handleReadyCamera = async () => {
+    if(cameraRef.current){
       try {
-        const photo = await cameraRef.current.takePictureAsync();
+        const photo = await cameraRef.current.takePictureAsync(
+          skipProcessing = true,
+        );
         setCapturedImage(photo.uri);
-        console.log('Photo taken:', photo.uri);
+        console.log('Photo taken : ', photo.uri);
       } catch (error) {
-        console.error('Failed to take picture:', error);
+        console.log("Failed to take picture: ", error);
       }
     }
+    setImageStatus(true);
   }
 
   return (
@@ -43,7 +51,8 @@ export default function BarcodeScanner() {
         barcodeScannerSettings={{
           barcodeTypes: ["qr"] 
         }} 
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} 
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+        onCameraReady = {imageTaken ? undefined : handleReadyCamera}
       />
       {capturedImage && (
         <Text>Captured Image URI: {capturedImage}</Text>
