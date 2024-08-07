@@ -3,8 +3,8 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BarcodeScanner() {
-  const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false); 
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -21,18 +21,21 @@ export default function BarcodeScanner() {
     );
   }
 
-  const handleBarCodeScanned = (data: string) => {
-    alert(`Scanned barcode: ${data}`);
-  }
-
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  const handleBarCodeScanned = (scannedData: BarcodeScanningResult) => {
+    setScanned(true); 
+    console.log(`Scanned barcode: ${scannedData.data}`);
   }
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing} barcodeScannerSettings={{
-    barcodeTypes: ["qr"] }} onBarcodeScanned={handleBarCodeScanned} />
+      <CameraView 
+        style={styles.camera} 
+        facing={'back'} //Using the back camera of the device
+        barcodeScannerSettings=
+          {{
+            barcodeTypes: ["qr"] 
+          }} 
+        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} />
     </View>
   );
 }
