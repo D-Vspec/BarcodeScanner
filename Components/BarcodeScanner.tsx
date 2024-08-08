@@ -1,13 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import BarcodeScannerOverlay from '../Assets/Icons/BarcodeScannerOverlay.tsx';
 
-export default function BarcodeScanner() {
+const BarcodeScanner: React.FC = () => {
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false);
+  const [scanned, setScanned] = useState<boolean>(false);
+  const [flashOn, setFlashOn] = useState<boolean>(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const cameraRef = useRef<CameraView>(null);
-  
+  const cameraRef = useRef<CameraView | null>(null);
+
   if (!permission) {
     return <View />;
   }
@@ -15,8 +17,9 @@ export default function BarcodeScanner() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+        <TouchableOpacity onPress={requestPermission}>
+          <Text style={styles.permissionText}>Grant camera permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -39,31 +42,47 @@ export default function BarcodeScanner() {
     }
   }
 
+  const toggleFlash = () => {
+    setFlashOn(!flashOn);
+  };
+
   return (
     <View style={styles.container}>
       <CameraView
         ref={cameraRef}
-        style={styles.camera} 
+        style={StyleSheet.absoluteFillObject} 
         facing={'back'}
         barcodeScannerSettings={{
           barcodeTypes: ["qr"] 
         }} 
         onBarcodeScanned={handleBarCodeScanned}
       />
+      <BarcodeScannerOverlay/>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
   },
-  message: {
+  permissionText: {
+    color: '#FCF3C5',
+    fontSize: 18,
     textAlign: 'center',
-    paddingBottom: 10,
   },
-  camera: {
-    flex: 1,
+  rescanButton: {
+    position: 'absolute',
+    bottom: 50,
+    alignSelf: 'center',
+    backgroundColor: '#FF7A01',
+    padding: 15,
+    borderRadius: 10,
+  },
+  rescanText: {
+    color: '#FCF3C5',
+    fontSize: 18,
   },
 });
+
+export default BarcodeScanner;
