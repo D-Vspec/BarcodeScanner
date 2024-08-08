@@ -1,17 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { CameraView , CameraType, useCameraPermissions } from 'expo-camera';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { Button, StyleSheet, Text, View } from 'react-native';
 
 export default function BarcodeScanner() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [scanned, setScanned] = useState(false);  
-  const [imageTaken, setImageStatus] = useState(true);
+  const [scanned, setScanned] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<CameraView>(null);
   
   if (!permission) {
     return <View />;
   }
+
   if (!permission.granted) {
     return (
       <View style={styles.container}>
@@ -21,25 +21,22 @@ export default function BarcodeScanner() {
     );
   }
 
-  const handleBarCodeScanned = (scannedData: BarcodeScanningResult) => {
-    setScanned(true); 
-    console.log(`Scanned barcode: ${scannedData.data}`);
-    setImageStatus(false);
-  }
-
-  const handleReadyCamera = async () => {
-    if(cameraRef.current){
-      try {
-        const photo = await cameraRef.current.takePictureAsync(
-          skipProcessing = true,
-        );
-        setCapturedImage(photo.uri);
-        console.log('Photo taken : ', photo.uri);
-      } catch (error) {
-        console.log("Failed to take picture: ", error);
+  const handleBarCodeScanned = async (scannedData: BarcodeScanningResult) => {
+    if (!scanned) {
+      setScanned(true);
+      console.log(`Scanned barcode: ${scannedData.data}`);
+      
+      // Take picture immediately after scanning
+      if (cameraRef.current) {
+        try {
+          const photo = await cameraRef.current.takePictureAsync();
+          setCapturedImage(photo.uri);
+          console.log('Photo taken: ', photo.uri);
+        } catch (error) {
+          console.log("Failed to take picture: ", error);
+        }
       }
     }
-    setImageStatus(true);
   }
 
   return (
@@ -51,15 +48,8 @@ export default function BarcodeScanner() {
         barcodeScannerSettings={{
           barcodeTypes: ["qr"] 
         }} 
-        onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-        onCameraReady = {imageTaken ? undefined : handleReadyCamera}
+        onBarcodeScanned={handleBarCodeScanned}
       />
-      {capturedImage && (
-        <Text>Captured Image URI: {capturedImage}</Text>
-      )}
-      {scanned && (
-        <Button title="Scan Again" onPress={() => setScanned(false)} />
-      )}
     </View>
   );
 }
@@ -75,21 +65,5 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
-  },
-  buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
-  },
-  button: {
-    flex: 1,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
   },
 });
