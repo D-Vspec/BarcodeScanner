@@ -2,11 +2,12 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import BarcodeScannerOverlay from '../Assets/Icons/BarcodeScannerOverlay.tsx';
+import FlashButton from '../Assets/Icons/FlashButton.tsx'
 
 const BarcodeScanner: React.FC = () => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
-  const [flashOn, setFlashOn] = useState<boolean>(false);
+  const [flash, setFlash] = useState<string>('off');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const cameraRef = useRef<CameraView | null>(null);
 
@@ -23,6 +24,11 @@ const BarcodeScanner: React.FC = () => {
       </View>
     );
   }
+
+  const toggleFlash = () => {
+    setFlash(current => (current === 'off' ? 'on' : 'off'));
+    console.log(`Flash toggled to ${flash}`);
+  };
 
   const handleBarCodeScanned = async (scannedData: BarcodeScanningResult) => {
     if (!scanned) {
@@ -42,22 +48,20 @@ const BarcodeScanner: React.FC = () => {
     }
   }
 
-  const toggleFlash = () => {
-    setFlashOn(!flashOn);
-  };
-
   return (
     <View style={styles.container}>
       <CameraView
         ref={cameraRef}
         style={StyleSheet.absoluteFillObject} 
         facing={'back'}
+        flash={flash}
         barcodeScannerSettings={{
           barcodeTypes: ["qr"] 
         }} 
         onBarcodeScanned={handleBarCodeScanned}
       />
       <BarcodeScannerOverlay/>
+      <FlashButton onToggle={toggleFlash}/>
     </View>
   );
 };
