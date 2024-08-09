@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Svg, { SvgProps, Rect, Path } from "react-native-svg";
-import { Dimensions } from 'react-native';
+import { Dimensions, SafeAreaView, StatusBar } from 'react-native';
 
 const BarcodeScannerOverlay: React.FC<SvgProps> = (props) => {
   const screenWidth = Dimensions.get('window').width;
@@ -11,6 +11,8 @@ const BarcodeScannerOverlay: React.FC<SvgProps> = (props) => {
   
   const boxX = (screenWidth - boxWidth) / 2;
   const boxY = ((screenHeight - boxHeight) / 2) * 1.1;
+  
+  const borderRadius = 20;
 
   const lineDistanceHorizontal = boxWidth * (248 / 323);
   const lineDistanceVertical = boxHeight * (299 / 325);
@@ -39,34 +41,58 @@ const BarcodeScannerOverlay: React.FC<SvgProps> = (props) => {
     V${boxY + (249 / 325) * boxHeight}
   `;
 
+  const backgroundPath = `
+    M0,0
+    H${screenWidth} 
+    V${screenHeight*3} 
+    H0 
+    V0 
+    Z
+    M${boxX},${boxY + borderRadius}
+    a${borderRadius},${borderRadius} 0 0 1 ${borderRadius},-${borderRadius}
+    h${boxWidth - 2 * borderRadius}
+    a${borderRadius},${borderRadius} 0 0 1 ${borderRadius},${borderRadius}
+    v${boxHeight - 2 * borderRadius}
+    a${borderRadius},${borderRadius} 0 0 1 -${borderRadius},${borderRadius}
+    h-${boxWidth - 2 * borderRadius}
+    a${borderRadius},${borderRadius} 0 0 1 -${borderRadius},-${borderRadius}
+    Z
+  `;
+
   return (
-    <Svg
-      width="100%"
-      height="100%"
-      viewBox={`0 0 ${screenWidth} ${screenHeight}`}
-      fill="none"
-      {...props}
-    >
+      <Svg
+        width="100%"
+        height="100%"
+        viewBox={`0 40 ${screenWidth} ${screenHeight}`}
+        fill="none"
+        {...props}
+      >
+        {/* Translucent Background with a precise cutout */}
+        <Path
+          d={backgroundPath}
+          fill="#26262699" // Translucent background
+          fillRule="evenodd"
+        />
 
-      {/* Scanning Box */}
-      <Rect
-        x={boxX}
-        y={boxY}
-        width={boxWidth}
-        height={boxHeight}
-        fill="transparent"
-        stroke="#FF7A01"
-        strokeWidth={5}
-        rx={20}
-      />
+        {/* Scanning Box Outline */}
+        <Rect
+          x={boxX}
+          y={boxY}
+          width={boxWidth}
+          height={boxHeight}
+          fill="transparent"
+          stroke="#FF7A01"
+          strokeWidth={5}
+          rx={20}
+        />
 
-      {/* Proportional Corner Lines */}
-      <Path
-        stroke="#FF7A01"
-        strokeWidth={3}
-        d={pathData}
-      />
-    </Svg>
+        {/* Proportional Corner Lines */}
+        <Path
+          stroke="#FF7A01"
+          strokeWidth={3}
+          d={pathData}
+        />
+      </Svg>
   );
 };
 
