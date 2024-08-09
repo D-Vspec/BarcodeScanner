@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import BarcodeScannerOverlay from '../Assets/Icons/BarcodeScannerOverlay.tsx';
 import FlashButton from '../Assets/Icons/FlashButton.tsx'
+import TerminateButton from '../Assets/Icons/TerminateButton.tsx'
 
 const BarcodeScanner: React.FC = () => {
   const [permission, requestPermission] = useCameraPermissions();
@@ -62,6 +63,7 @@ const BarcodeScanner: React.FC = () => {
       />
       <BarcodeScannerOverlay/>
       <FlashButton onToggle={toggleFlash}/>
+      <TerminateButton/>
     </View>
   );
 };
